@@ -1,22 +1,16 @@
 import BigNumber from "bignumber.js";
-import {
-    DivisionByZeroError,
-    FloatingPointNotSupportedError,
-    InconsistentSizeError,
-    OverflowError,
-    TypeNotSupportedError,
-    UnderflowError
-} from "./errors";
+import * as Err from "./errors";
 import {getMaxValue} from "./utils";
 import MetaInteger from "./MetaInteger";
 import UintType from "./UintType";
+
 
 
 class Uint extends MetaInteger{
 
     public static ValidateSize(a: Uint, b: Uint) {
         if (a._size !== b._size) {
-            throw new InconsistentSizeError(a._size, b._size);
+            throw new Err.InconsistentSizeError(a._size, b._size);
         }
     }
     // TODO: Enforce minimum (positive) size
@@ -32,7 +26,7 @@ class Uint extends MetaInteger{
             if (value.isInteger()) {
                 this._value = value;
             } else {
-                throw new FloatingPointNotSupportedError();
+                throw new Err.FloatingPointNotSupportedError();
             }
             // String
         } else if (typeof value === "string") {
@@ -42,20 +36,20 @@ class Uint extends MetaInteger{
                 val = parseInt(value);
 
             } catch (err) {
-                throw new TypeNotSupportedError();
+                throw new Err.TypeNotSupportedError();
             }
 
             if (val % 1 !== 0) {
-                throw new FloatingPointNotSupportedError();
+                throw new Err.FloatingPointNotSupportedError();
             }
             // Number
         } else if (typeof value === "number") {
             if (value % 1 !== 0) {
-                throw new FloatingPointNotSupportedError();
+                throw new Err.FloatingPointNotSupportedError();
             }
             this._value = new BigNumber(value);
         } else {
-            throw new TypeNotSupportedError();
+            throw new Err.TypeNotSupportedError();
         }
 
     }
@@ -66,7 +60,7 @@ class Uint extends MetaInteger{
         let res: BigNumber = this._value.plus(i._value);
 
         if(this._value.gt(res)){
-            throw new OverflowError(this._size, res.toString(2).length)
+            throw new Err.OverflowError(this._size, res.toString(2).length)
         }
 
         return new Uint(res);
@@ -78,7 +72,7 @@ class Uint extends MetaInteger{
         let res: BigNumber = this._value.minus(i._value);
 
         if (this._value.lt(res)) {
-            throw new UnderflowError(this._size, res.toString(2).length);
+            throw new Err.UnderflowError(this._size, res.toString(2).length);
         }
 
         return new T(res);
@@ -95,7 +89,7 @@ class Uint extends MetaInteger{
         let divRes: BigNumber = res.dividedBy(this._value)
 
         if (!divRes.eq(i._value)) {
-            throw new OverflowError(this._size, res.toString(2).length);
+            throw new Err.OverflowError(this._size, res.toString(2).length);
         }
         return new T(res);
     }
@@ -104,7 +98,7 @@ class Uint extends MetaInteger{
         T.ValidateSize(this, i);
 
         if(i._value.isZero()){
-            throw new DivisionByZeroError();
+            throw new Err.DivisionByZeroError();
         }
 
         return new T(this._value.dividedBy(i._value));
