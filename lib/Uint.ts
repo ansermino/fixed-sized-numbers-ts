@@ -17,24 +17,44 @@ import {
     Uint
 } from "./Interfaces";
 
+// Validators
+const validateSize = (a: MetaInteger) => (b: MetaInteger): boolean => a._size === b._size
+const checkOverFlow = (iVal: BigNumber) => (iSize: number) => (sum: BigNumber) => iVal.lt(sum) ? sum : new OverflowError(iSize, getSize(sum))
+const checkUnderFlow = (iVal: BigNumber) => (iSize: number) => (difference: BigNumber) => iVal.gt(difference) ? difference : new OverflowError(iSize, getSize(sum))
+const bigNumberOrThrowError = (x: BigNumber | Error): BigNumber => {
+    if (x instanceof Error) throw x
+    else return x
+}
 
-const validateSize = (a: MetaInteger, b: MetaInteger): Boolean => a._size === b._size
-function validateOwnSize(a: MetaInteger): Boolean {return this._size === a._size}
-const add = (m) => m
+const addFactory = <T>(initial: Uint) => (addend:Uint): T => {
+   if(initial.validateSize(addend)) throw new InconsistentSizeError(initial._size, addend._size)
+   else return pipe ( 
+            initial._value.plus, 
+            checkOverFlow(initial._value)(initial._size)
+        )(addend._value)
+}
+
+const subFactory = <T>(minuend: Uint) => (subtrahend:Uint): T => {
+   if(minuend.validateSize(subtrahend)) throw new InconsistentSizeError(minuend._size, subtrahend._size)
+   else return pipe ( 
+            minuend._value.minus, 
+            checkUnderFlow(minuend._value)(minuend._size)
+        )(subtrahend._value)
+}
+
+const funcTyper = (uint: Uint) => (fn: <T>(internal: Uint) => (external: Uint) => T )  => {
+    if (uint._size === 8) return fn<Uint8>(uint)
+    else if (uint._size === 16) return fn<Uint16>(uint)
+    else if (uint._size === 32) return fn<Uint32>(uint)
+    else if (uint._size === 64) return fn<Uint64>(uint)
+    else throw new TypeNotSupportedError()
+}
+
+
+
 const sub = (m) => m
 const mul = (m) => m
 const div = (m) => m
-// Use discriminated union for functions
-
-const basicMetaInteger = {
-    _value: new BigNumber(0),
-    _size: 2,
-    validateSize,
-    add,
-    sub,
-    mul,
-    div
-}
 
 const isUint8 = (x: Uint): x is Uint8 => (<Uint8>x)._uint8 
 const isUint16 = (x: Uint): x is Uint16 => (<Uint16>x)._uint16 
@@ -48,18 +68,20 @@ const noFloatString = (x: string): BigNumber | Error => noFloatNumber(parseInt(x
 const noFloatBigNumber = (x: BigNumber): BigNumber | Error => x.isInteger() ? x : new FloatingPointNotSupportedError()
 const noFloatNumber = (x: number): BigNumber | Error => x % 1 === 0 ? new BigNumber(x) : new FloatingPointNotSupportedError()
 
-const inputTypeToBigNumber = (value?: number | string | BigNumber) => {
+const inputTypeToBigNumber = (value?: number | string | BigNumber): BigNumber | Error => {
     if (value instanceof BigNumber) return noFloatBigNumber(value)
     else if (typeof value === 'string') return noFloatString(value)
     else if (typeof value === 'number') return noFloatNumber(value)
 }
 
+
+
 const buildUint = (_size: number) => (_value: BigNumber): MetaInteger => ({
     _value,
     _size,
     validateSize,
-    add,
-    sub,
+    add: funcTyper(this)(addFactory),
+    sub: funcTyper(this)(subFactory),
     mul,
     div,
 })
@@ -69,6 +91,7 @@ const composeObjects = (x: Object) => (y: Object) => Object.assign(y, x)
 const Uint8 = (value?: number | string | BigNumber): Uint8 => pipe(
         emptyValueToZero,
         inputTypeToBigNumber,
+        bigNumberOrThrowError,
         buildUint(8),
         composeObjects({_uint8: true})
     )(value)
@@ -76,6 +99,7 @@ const Uint8 = (value?: number | string | BigNumber): Uint8 => pipe(
 const Uint16 = (value?: number | string | BigNumber): Uint16 => pipe(
         emptyValueToZero,
         inputTypeToBigNumber,
+        bigNumberOrThrowError,
         buildUint(16),
         composeObjects({_uint16: true})
     )(value)
@@ -83,6 +107,7 @@ const Uint16 = (value?: number | string | BigNumber): Uint16 => pipe(
 const Uint32 = (value?: number | string | BigNumber): Uint32 => pipe(
         emptyValueToZero,
         inputTypeToBigNumber,
+        bigNumberOrThrowError,
         buildUint(32),
         composeObjects({_uint32: true})
     )(value)
@@ -90,6 +115,7 @@ const Uint32 = (value?: number | string | BigNumber): Uint32 => pipe(
 const Uint64 = (value?: number | string | BigNumber): Uint64 => pipe(
         emptyValueToZero,
         inputTypeToBigNumber,
+        bigNumberOrThrowError,
         buildUint(64),
         composeObjects({_uint64: true})
     )(value)

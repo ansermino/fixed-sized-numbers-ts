@@ -3,7 +3,7 @@ import BigNumber from "bignumber.js";
 interface MetaInteger {
     _value: BigNumber;
     _size: number;
-    validateSize(a: MetaInteger, b: MetaInteger)
+    validateSize(a: MetaInteger)
     add(n: MetaInteger): MetaInteger;
     sub(n: MetaInteger): MetaInteger;
     mul(n: MetaInteger): MetaInteger;
