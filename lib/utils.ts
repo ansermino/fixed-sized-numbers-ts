@@ -1,4 +1,5 @@
 import BigNumber from 'bignumber.js'
+import { TypeNotSupportedError } from './errors'
 
 // TODO: need to make this work for signed numbers as well
 const getMaxValue = (size: number): BigNumber => {
@@ -16,4 +17,18 @@ const getMaxValue = (size: number): BigNumber => {
         return new BigNumber((2**size) - 1)
 }
 
-export {getMaxValue}
+const getSize = (num) => {
+    if(typeof num === 'number') return getNumberSize(num)
+    else if(typeof num === 'string') return getStringNumberSize(num)
+    else if(BigNumber.isBigNumber(num)) return getBigNumberSize(num)
+    else throw new TypeNotSupportedError()
+}
+
+const getNumberSize = (num: number): number => num.toString(2).length
+const getBigNumberSize = (num: BigNumber): number => num.toNumber().toString(2).length
+const getStringNumberSize = (num: string): number => parseInt(num).toString(2).length
+
+export {
+    getMaxValue,
+    getSize
+}

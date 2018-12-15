@@ -8,17 +8,17 @@ describe('Unsigned Number', () => {
     it('should create a instance with a default value of zero', () => {
         let num = new UnsignedNumber(1)
 
-        expect(num.value.c).to.have.lengthOf(1)
-        expect(num.value.c[0]).to.equal(0)
+        expect(num._value.c).to.have.lengthOf(1)
+        expect(num._value.c[0]).to.equal(0)
     });
 
     it('should create an instance with a value of 100 and size 10', () => {
-        let num = new UnsignedNumber(10, 100)
+        let num = new UnsignedNumber(100)
 
-        expect(num.size).to.equal(10)
+        expect(num._size).to.equal(10)
 
-        expect(num.value.c).to.have.lengthOf(1)
-        expect(num.value.c[0]).to.equal(100)
+        expect(num._value.c).to.have.lengthOf(1)
+        expect(num._value.c[0]).to.equal(100)
     })
 
     it('should fail to create an instance with a value greater than its size', () => {

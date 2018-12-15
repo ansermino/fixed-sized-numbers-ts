@@ -7,7 +7,7 @@ import {
     TypeNotSupportedError,
     UnderflowError
 } from "./errors";
-import {getMaxValue} from "./utils";
+import { getMaxValue, getSize } from "./utils";
 import MetaInteger from "./MetaInteger";
 import UintType from "./UintType";
 
@@ -22,7 +22,7 @@ class Uint extends MetaInteger{
     // TODO: Enforce minimum (positive) size
 
 
-    constructor(value?: number | string | BigNumber) {
+    constructor(value?: number | string | BigNumber, size?: number) {
         super()
         // No value provided
         if (!value) {
@@ -57,10 +57,15 @@ class Uint extends MetaInteger{
         } else {
             throw new TypeNotSupportedError();
         }
-
+        
+        if (size && size <= getSize(this._value)){
+            this._size = size
+        } else {
+            this._size = this._value.toNumber().toString(2).length
+        }
     }
 
-    public add(i: this): this {
+    public add(i: Uint): Uint {
         Uint.ValidateSize(this, i);
 
         let res: BigNumber = this._value.plus(i._value);
@@ -72,8 +77,8 @@ class Uint extends MetaInteger{
         return new Uint(res);
     }
 
-    public sub(i: T): T {
-        T.ValidateSize(this, i);
+    public sub(i: Uint): Uint {
+        Uint.ValidateSize(this, i);
 
         let res: BigNumber = this._value.minus(i._value);
 
@@ -81,14 +86,14 @@ class Uint extends MetaInteger{
             throw new UnderflowError(this._size, res.toString(2).length);
         }
 
-        return new T(res);
+        return new Uint(res);
     }
 
-    public mul<T>(i: T): T {
-        T.ValidateSize(this, i);
+    public mul(i: Uint): Uint {
+        Uint.ValidateSize(this, i);
 
         if(i._value.isZero() || this._value.isZero()){
-            return new T(new BigNumber(0))
+            return new Uint(new BigNumber(0))
         }
 
         let res: BigNumber = this._value.multipliedBy(i._value);
@@ -97,17 +102,17 @@ class Uint extends MetaInteger{
         if (!divRes.eq(i._value)) {
             throw new OverflowError(this._size, res.toString(2).length);
         }
-        return new T(res);
+        return new Uint(res);
     }
 
-    public div<T>(i: T): T {
-        T.ValidateSize(this, i);
+    public div(i: Uint): Uint {
+        Uint.ValidateSize(this, i);
 
         if(i._value.isZero()){
             throw new DivisionByZeroError();
         }
 
-        return new T(this._value.dividedBy(i._value));
+        return new Uint(this._value.dividedBy(i._value));
     }
 
 }
