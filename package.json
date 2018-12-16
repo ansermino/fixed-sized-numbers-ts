@@ -5,14 +5,13 @@
   "main": "lib/UnsignedNumber.js",
   "scripts": {
     "build": "tsc --build tsconfig.json",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "check": "gts check",
-    "clean": "gts clean",
+    "test": "mocha ./tests/*.js",
+    "lint": "node_modules/.bin/tslint -c tslint.json '*/*.ts'",
     "compile": "tsc -p .",
-    "fix": "gts fix",
+    "fix": "node_modules/.bin/tslint -c tslint.json '*/*.ts' --fix",
     "prepare": "npm run compile",
     "pretest": "npm run compile",
-    "posttest": "npm run check"
+    "posttest": "npm run lint"
   },
   "author": "",
   "license": "ISC",
@@ -24,7 +23,6 @@
     "@types/mocha": "^5.2.5",
     "@types/node": "^10.12.10",
     "chai": "^4.2.0",
-    "gts": "^0.9.0",
     "mocha": "^5.2.0",
     "ts-node": "^7.0.1",
     "tslint": "^5.11.0",

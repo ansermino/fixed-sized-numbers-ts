@@ -1,13 +1,16 @@
 import BigNumber from "bignumber.js";
 
-interface MetaInteger {
+interface MetaIntCore {
     _value: BigNumber;
     _size: number;
-    validateSize(a: MetaInteger)
-    add(n: MetaInteger): MetaInteger;
-    sub(n: MetaInteger): MetaInteger;
-    mul(n: MetaInteger): MetaInteger;
-    div(n: MetaInteger): MetaInteger;
+    validateSize(a: MetaIntCore);
+}
+
+interface MetaInteger extends MetaIntCore {
+    add(n: MetaIntCore): MetaInteger;
+    sub(n: MetaIntCore): MetaInteger;
+    mul(n: MetaIntCore): MetaInteger;
+    div(n: MetaIntCore): MetaInteger;
 }
 
 interface Uint8 extends MetaInteger {
@@ -23,7 +26,7 @@ interface Uint64 extends MetaInteger {
     _uint64: boolean;
 }
 
-type Uint = Uint8 | Uint16 | Uint32 | Uint64
+type Uint = Uint8 | Uint16 | Uint32 | Uint64;
 
 interface Int8 extends MetaInteger {
     _int8: boolean;
@@ -38,10 +41,11 @@ interface Int64 extends MetaInteger {
     _int64: boolean;
 }
 
-type Integer = Int8 | Int16 | Int32 | Int64
+type Integer = Int8 | Int16 | Int32 | Int64;
 
 
 export {
+    MetaIntCore,
     MetaInteger,
     Uint8,
     Uint16,
@@ -52,5 +56,5 @@ export {
     Int16,
     Int32,
     Int64,
-    Integer
+    Integer,
 };
