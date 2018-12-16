@@ -7,7 +7,7 @@ import {
     TypeNotSupportedError,
     UnderflowError
 } from "./errors";
-import { getMaxValue, getSize } from "./utils";
+import { getSize, pipe } from "./utils";
 import { 
     MetaInteger,
     Uint8,
@@ -17,20 +17,31 @@ import {
     Uint
 } from "./Interfaces";
 
-// Validators
+
+//  Validators
 const validateSize = (a: MetaInteger) => (b: MetaInteger): boolean => a._size === b._size
 const checkOverFlow = (iVal: BigNumber) => (iSize: number) => (sum: BigNumber) => iVal.lt(sum) ? sum : new OverflowError(iSize, getSize(sum))
-const checkUnderFlow = (iVal: BigNumber) => (iSize: number) => (difference: BigNumber) => iVal.gt(difference) ? difference : new OverflowError(iSize, getSize(sum))
+const checkUnderFlow = (iVal: BigNumber) => (iSize: number) => (difference: BigNumber) => iVal.gt(difference) ? difference : new OverflowError(iSize, getSize(difference))
+const checkMult = (multiplicand: BigNumber) => (multiplicandSize: number) => (multiplier: BigNumber) => (product: BigNumber) => 
+    (multiplicand.toNumber() === 0 || multiplier.toNumber() === 0) && product.toNumber() === 0
+        ? product
+        : product.dividedBy(multiplier).eq(multiplicand)
+            ? product
+            : new OverflowError(multiplicandSize, getSize(product))
+const checkDivByZero = (divisor: BigNumber) => (quotient: BigNumber) => !divisor.isZero() ? quotient : new DivisionByZeroError()
 const bigNumberOrThrowError = (x: BigNumber | Error): BigNumber => {
     if (x instanceof Error) throw x
     else return x
 }
 
+// Math Method Factories
 const addFactory = <T>(initial: Uint) => (addend:Uint): T => {
    if(initial.validateSize(addend)) throw new InconsistentSizeError(initial._size, addend._size)
    else return pipe ( 
             initial._value.plus, 
-            checkOverFlow(initial._value)(initial._size)
+            checkOverFlow(initial._value)(initial._size),
+            bigNumberOrThrowError,
+            resultTyper(addend)
         )(addend._value)
 }
 
@@ -38,11 +49,34 @@ const subFactory = <T>(minuend: Uint) => (subtrahend:Uint): T => {
    if(minuend.validateSize(subtrahend)) throw new InconsistentSizeError(minuend._size, subtrahend._size)
    else return pipe ( 
             minuend._value.minus, 
-            checkUnderFlow(minuend._value)(minuend._size)
+            checkUnderFlow(minuend._value)(minuend._size),
+            bigNumberOrThrowError,
+            resultTyper(minuend)
         )(subtrahend._value)
 }
 
-const funcTyper = (uint: Uint) => (fn: <T>(internal: Uint) => (external: Uint) => T )  => {
+const mulFactory = <T>(multiplicand: Uint) => (multiplier:Uint): T => {
+   if(multiplicand.validateSize(multiplier)) throw new InconsistentSizeError(multiplicand._size, multiplier._size)
+   else return pipe ( 
+            multiplicand._value.multipliedBy, 
+            checkMult(multiplicand._value)(multiplicand._size)(multiplier._value),
+            bigNumberOrThrowError,
+            resultTyper(multiplicand)
+        )(multiplier._value)
+}
+
+const divFactory = <T>(dividend: Uint) => (divisor:Uint): T => {
+   if(dividend.validateSize(divisor)) throw new InconsistentSizeError(dividend._size, divisor._size)
+   else return pipe ( 
+            dividend._value.dividedBy, 
+            checkDivByZero(dividend._value),
+            bigNumberOrThrowError,
+            resultTyper(dividend)
+        )(divisor._value)
+}
+
+// Typers
+const factoryTyper = (uint: Uint) => (fn: <T>(internal: Uint) => (external: Uint) => T )  => {
     if (uint._size === 8) return fn<Uint8>(uint)
     else if (uint._size === 16) return fn<Uint16>(uint)
     else if (uint._size === 32) return fn<Uint32>(uint)
@@ -50,19 +84,21 @@ const funcTyper = (uint: Uint) => (fn: <T>(internal: Uint) => (external: Uint) =
     else throw new TypeNotSupportedError()
 }
 
+const resultTyper = (initial: Uint) => (result: BigNumber) => {
+    if (initial._size === 8) return Uint8(result)
+    else if (initial._size === 16) return Uint16(result)
+    else if (initial._size === 32) return Uint32(result)
+    else if (initial._size === 64) return Uint64(result)
+    else throw new TypeNotSupportedError()
+}
 
+// Type Checkers
+const isUint8 = (x: Uint): x is Uint8 => (<Uint8>x)._uint8
+const isUint16 = (x: Uint): x is Uint16 => (<Uint16>x)._uint16
+const isUint32 = (x: Uint): x is Uint32 => (<Uint32>x)._uint32
+const isUint64 = (x: Uint): x is Uint64 => (<Uint64>x)._uint64
 
-const sub = (m) => m
-const mul = (m) => m
-const div = (m) => m
-
-const isUint8 = (x: Uint): x is Uint8 => (<Uint8>x)._uint8 
-const isUint16 = (x: Uint): x is Uint16 => (<Uint16>x)._uint16 
-const isUint32 = (x: Uint): x is Uint32 => (<Uint32>x)._uint32 
-const isUint64 = (x: Uint): x is Uint64 => (<Uint64>x)._uint64 
-
-const pipe = (...fns) => x => fns.reduce((v, f) => f(v), x)
-
+// Convert Constructor Inputs to BigNumbers
 const emptyValueToZero = x => x ? x : 0
 const noFloatString = (x: string): BigNumber | Error => noFloatNumber(parseInt(x))
 const noFloatBigNumber = (x: BigNumber): BigNumber | Error => x.isInteger() ? x : new FloatingPointNotSupportedError()
@@ -74,26 +110,25 @@ const inputTypeToBigNumber = (value?: number | string | BigNumber): BigNumber | 
     else if (typeof value === 'number') return noFloatNumber(value)
 }
 
-
-
+// Uint Factory
 const buildUint = (_size: number) => (_value: BigNumber): MetaInteger => ({
     _value,
     _size,
     validateSize,
-    add: funcTyper(this)(addFactory),
-    sub: funcTyper(this)(subFactory),
-    mul,
-    div,
+    add: factoryTyper(this)(addFactory),
+    sub: factoryTyper(this)(subFactory),
+    mul: factoryTyper(this)(mulFactory),
+    div: factoryTyper(this)(divFactory),
 })
 
-const composeObjects = (x: Object) => (y: Object) => Object.assign(y, x)
+const composeObjects = <T>(x: Object) => (y: Object): T => Object.assign(y, x) as T
 
 const Uint8 = (value?: number | string | BigNumber): Uint8 => pipe(
         emptyValueToZero,
         inputTypeToBigNumber,
         bigNumberOrThrowError,
         buildUint(8),
-        composeObjects({_uint8: true})
+        composeObjects<Uint8>({_uint8: true})
     )(value)
 
 const Uint16 = (value?: number | string | BigNumber): Uint16 => pipe(
@@ -101,7 +136,7 @@ const Uint16 = (value?: number | string | BigNumber): Uint16 => pipe(
         inputTypeToBigNumber,
         bigNumberOrThrowError,
         buildUint(16),
-        composeObjects({_uint16: true})
+        composeObjects<Uint16>({_uint16: true})
     )(value)
 
 const Uint32 = (value?: number | string | BigNumber): Uint32 => pipe(
@@ -109,7 +144,7 @@ const Uint32 = (value?: number | string | BigNumber): Uint32 => pipe(
         inputTypeToBigNumber,
         bigNumberOrThrowError,
         buildUint(32),
-        composeObjects({_uint32: true})
+        composeObjects<Uint32>({_uint32: true})
     )(value)
 
 const Uint64 = (value?: number | string | BigNumber): Uint64 => pipe(
@@ -117,114 +152,12 @@ const Uint64 = (value?: number | string | BigNumber): Uint64 => pipe(
         inputTypeToBigNumber,
         bigNumberOrThrowError,
         buildUint(64),
-        composeObjects({_uint64: true})
+        composeObjects<Uint64>({_uint64: true})
     )(value)
 
-
-
-// class Uint extends MetaInteger{
-
-//     public static ValidateSize(a: Uint, b: Uint) {
-//         if (a._size !== b._size) {
-//             throw new InconsistentSizeError(a._size, b._size);
-//         }
-//     }
-//     // TODO: Enforce minimum (positive) size
-
-
-//     constructor(value?: number | string | BigNumber, size?: number) {
-//         super()
-//         // No value provided
-//         if (!value) {
-//             this._value = new BigNumber(0);
-//             // BigNumber
-//         } else if (value instanceof BigNumber) {
-//             if (value.isInteger()) {
-//                 this._value = value;
-//             } else {
-//                 throw new FloatingPointNotSupportedError();
-//             }
-//             // String
-//         } else if (typeof value === "string") {
-//             let val;
-//             try {
-//                 // TODO: Ensure this handles all radix (possible without specifying separately?)
-//                 val = parseInt(value);
-
-//             } catch (err) {
-//                 throw new TypeNotSupportedError();
-//             }
-
-//             if (val % 1 !== 0) {
-//                 throw new FloatingPointNotSupportedError();
-//             }
-//             // Number
-//         } else if (typeof value === "number") {
-//             if (value % 1 !== 0) {
-//                 throw new FloatingPointNotSupportedError();
-//             }
-//             this._value = new BigNumber(value);
-//         } else {
-//             throw new TypeNotSupportedError();
-//         }
-        
-//         if (size && size <= getSize(this._value)){
-//             this._size = size
-//         } else {
-//             this._size = this._value.toNumber().toString(2).length
-//         }
-//     }
-
-//     public add(i: Uint): Uint {
-//         Uint.ValidateSize(this, i);
-
-//         let res: BigNumber = this._value.plus(i._value);
-
-//         if(this._value.gt(res)){
-//             throw new OverflowError(this._size, res.toString(2).length)
-//         }
-
-//         return new Uint(res);
-//     }
-
-//     public sub(i: Uint): Uint {
-//         Uint.ValidateSize(this, i);
-
-//         let res: BigNumber = this._value.minus(i._value);
-
-//         if (this._value.lt(res)) {
-//             throw new UnderflowError(this._size, res.toString(2).length);
-//         }
-
-//         return new Uint(res);
-//     }
-
-//     public mul(i: Uint): Uint {
-//         Uint.ValidateSize(this, i);
-
-//         if(i._value.isZero() || this._value.isZero()){
-//             return new Uint(new BigNumber(0))
-//         }
-
-//         let res: BigNumber = this._value.multipliedBy(i._value);
-//         let divRes: BigNumber = res.dividedBy(this._value)
-
-//         if (!divRes.eq(i._value)) {
-//             throw new OverflowError(this._size, res.toString(2).length);
-//         }
-//         return new Uint(res);
-//     }
-
-//     public div(i: Uint): Uint {
-//         Uint.ValidateSize(this, i);
-
-//         if(i._value.isZero()){
-//             throw new DivisionByZeroError();
-//         }
-
-//         return new Uint(this._value.dividedBy(i._value));
-//     }
-
-// }
-
-// export default Uint;
+export default {
+    Uint8,
+    Uint16,
+    Uint32,
+    Uint64
+}
