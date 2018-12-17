@@ -303,7 +303,6 @@ describe("SafeMath tests for uint8", () => {
     it("Uint8 should return a Uint8 for all basic methods: Add", () => {
         const one = Uint_1.Uint8(1);
         const two = one.add(one);
-        console.log(two);
         // assert(two._uint8, "did not return expected type Uint8");
         chai_1.assert(two._value instanceof bignumber_js_1.default, "did have a value of expected type BigNumber");
         chai_1.expect(two._size).to.be.equal(8);

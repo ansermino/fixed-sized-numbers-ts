@@ -9,7 +9,6 @@ import {
     UnderflowError,
 } from "./errors";
 import {
-    MetaIntCore,
     MetaInteger,
     Uint,
     Uint16,
@@ -21,7 +20,7 @@ import { getSize, pipe } from "./utils";
 
 
 //  Validators
-const validateSize = (initialSize: number) => (external: MetaIntCore): boolean => initialSize === external._size;
+const validateSize = (initialSize: number) => (external: MetaInteger): boolean => initialSize === external._size;
 const checkOverFlow = (iVal: BigNumber) => (iSize: number) => (sum: BigNumber) => iVal.lt(sum) ? sum : new OverflowError(iSize, getSize(sum));
 const checkUnderFlow = (iVal: BigNumber) => (iSize: number) => (difference: BigNumber) => iVal.gt(difference) ? difference : new UnderflowError(iSize, getSize(difference));
 const checkMult = (multiplicand: BigNumber) => (multiplicandSize: number) => (multiplier: BigNumber) => (product: BigNumber) =>
@@ -38,7 +37,7 @@ const bigNumberOrThrowError = (x: BigNumber | Error): BigNumber => {
 };
 
 // Math Method Factories
-const addFactory = <T>(initial: MetaIntCore) => (addend: Uint): T => {
+const addFactory = (initial: MetaInteger) => (addend: Uint) => {
     if (!initial.validateSize(addend)) {
        throw new InconsistentSizeError(initial._size, addend._size);
     } else { return pipe (
@@ -49,73 +48,47 @@ const addFactory = <T>(initial: MetaIntCore) => (addend: Uint): T => {
    }
 };
 
-const subFactory = <T>(minuend: MetaIntCore) => (subtrahend: Uint): T => {
+const subFactory = (minuend: MetaInteger) => (subtrahend: Uint) => {
    if (!minuend.validateSize(subtrahend)) {
        throw new InconsistentSizeError(minuend._size, subtrahend._size);
     } else { return pipe (
-            minuend._value.minus,
             checkUnderFlow(minuend._value)(minuend._size),
             bigNumberOrThrowError,
             resultTyper(minuend),
-        )(subtrahend._value);
+        )(minuend._value.minus(subtrahend._value));
    }
 };
 
-const mulFactory = <T>(multiplicand: MetaIntCore) => (multiplier: Uint): T => {
+const mulFactory = (multiplicand: MetaInteger) => (multiplier: Uint) => {
    if (!multiplicand.validateSize(multiplier)) {
        throw new InconsistentSizeError(multiplicand._size, multiplier._size);
     } else { return pipe (
-            multiplicand._value.multipliedBy,
             checkMult(multiplicand._value)(multiplicand._size)(multiplier._value),
             bigNumberOrThrowError,
             resultTyper(multiplicand),
-        )(multiplier._value);
+        )(multiplicand._value.multipliedBy(multiplier._value));
    }
 };
 
-const divFactory = <T>(dividend: MetaIntCore) => (divisor: Uint): T => {
+const divFactory = (dividend: MetaInteger) => (divisor: Uint) => {
    if (!dividend.validateSize(divisor)) {
        throw new InconsistentSizeError(dividend._size, divisor._size);
     } else { return pipe (
-            dividend._value.dividedBy,
             checkDivByZero(dividend._value),
             bigNumberOrThrowError,
             resultTyper(dividend),
-        )(divisor._value);
+        )(dividend._value.dividedBy(divisor._value));
    }
 };
 
 // Typers
-const factoryTyper = (uint: MetaIntCore) => (factory: <T>(internal: MetaIntCore) => (external: Uint) => T )  => {
-    if (uint._size === 8) { return factory<Uint8>(uint);
-    } else if (uint._size === 16) { return factory<Uint16>(uint);
-    } else if (uint._size === 32) { return factory<Uint32>(uint);
-    } else if (uint._size === 64) { return factory<Uint64>(uint);
-    } else { throw new TypeNotSupportedError(); }
-};
+const factoryTyper = <U>(uint: MetaInteger) => (factory: (internal: MetaInteger) => (external: Uint) => U ) => factory(uint);
 
-const resultTyper = (initial: MetaIntCore) => (result: BigNumber) => {
+const resultTyper = (initial: MetaInteger) => (result: BigNumber) => {
     if (initial._size === 8) { return Uint8(result);
     } else if (initial._size === 16) { return Uint16(result);
     } else if (initial._size === 32) { return Uint32(result);
     } else if (initial._size === 64) { return Uint64(result);
-    } else { throw new TypeNotSupportedError(); }
-};
-
-const coerceUint8 = (uint: Uint): Uint8 => {
-    if (isUint8(uint)) { return uint;
-    } else { throw new TypeNotSupportedError(); }
-};
-const coerceUint16 = (uint: Uint): Uint16 => {
-    if (isUint16(uint)) { return uint;
-    } else { throw new TypeNotSupportedError(); }
-};
-const coerceUint32 = (uint: Uint): Uint32 => {
-    if (isUint32(uint)) { return uint;
-    } else { throw new TypeNotSupportedError(); }
-};
-const coerceUint64 = (uint: Uint): Uint64 => {
-    if (isUint64(uint)) { return uint;
     } else { throw new TypeNotSupportedError(); }
 };
 
@@ -138,14 +111,18 @@ const sizeCheck = (size: number) => (value: BigNumber | Error): BigNumber | Erro
 };
 
 // Uint Factory
-const buildUint = (coercer) => (size: number) => (value: BigNumber): MetaInteger => ({
+const buildMetaInt = (size: number) => (value: BigNumber): MetaInteger => ({
     _value: value,
     _size: size,
     validateSize: validateSize(size),
-    add: factoryTyper({_value: value, _size: size, validateSize: validateSize(size)})(addFactory),
-    sub: factoryTyper({_value: value, _size: size, validateSize: validateSize(size)})(subFactory),
-    mul: factoryTyper({_value: value, _size: size, validateSize: validateSize(size)})(mulFactory),
-    div: factoryTyper({_value: value, _size: size, validateSize: validateSize(size)})(divFactory),
+});
+
+const addMathMethods = <T>() => (metaInt: MetaInteger) => ({
+    ...metaInt,
+    add: factoryTyper<T>(metaInt)(addFactory),
+    sub: factoryTyper<T>(metaInt)(subFactory),
+    mul: factoryTyper<T>(metaInt)(mulFactory),
+    div: factoryTyper<T>(metaInt)(divFactory),
 });
 
 const composeObjects = <T>(x) => (y: MetaInteger): T => Object.assign(y, x) as T;
@@ -155,7 +132,8 @@ const Uint8 = (value?: number | string | BigNumber): Uint8 => pipe(
         inputTypeToBigNumber,
         sizeCheck(8),
         bigNumberOrThrowError,
-        buildUint(8),
+        buildMetaInt(8),
+        addMathMethods<Uint8>(),
         composeObjects<Uint8>({_uint8: true}),
     )(value);
 
@@ -164,7 +142,8 @@ const Uint16 = (value?: number | string | BigNumber): Uint16 => pipe(
         inputTypeToBigNumber,
         sizeCheck(16),
         bigNumberOrThrowError,
-        buildUint(16),
+        buildMetaInt(16),
+        addMathMethods<Uint16>(),
         composeObjects<Uint16>({_uint16: true}),
     )(value);
 
@@ -173,7 +152,8 @@ const Uint32 = (value?: number | string | BigNumber): Uint32 => pipe(
         inputTypeToBigNumber,
         sizeCheck(32),
         bigNumberOrThrowError,
-        buildUint(32),
+        buildMetaInt(32),
+        addMathMethods<Uint32>(),
         composeObjects<Uint32>({_uint32: true}),
     )(value);
 
@@ -182,7 +162,8 @@ const Uint64 = (value?: number | string | BigNumber): Uint64 => pipe(
         inputTypeToBigNumber,
         sizeCheck(64),
         bigNumberOrThrowError,
-        buildUint(64),
+        buildMetaInt(64),
+        addMathMethods<Uint64>(),
         composeObjects<Uint64>({_uint64: true}),
     )(value);
 
