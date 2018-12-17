@@ -7,7 +7,11 @@ class InvalidSizeError extends Error {
     constructor(val: number) {
         super(`Invalid size: ${val}`);
     }
-
+}
+class NegativeUnsignedError extends Error {
+    constructor(val: number) {
+        super(`Cannot construct negative unsigned integers, value attempted: ${val}`);
+    }
 }
 class OverflowError extends Error {
     constructor(capacity: number, required: number) {
@@ -45,4 +49,5 @@ export {
     InconsistentSizeError,
     FloatingPointNotSupportedError,
     DivisionByZeroError,
+    NegativeUnsignedError,
 };
