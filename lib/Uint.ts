@@ -1,4 +1,7 @@
 import BigNumber from "bignumber.js";
+BigNumber.config({
+    DECIMAL_PLACES: 0,
+});
 import {
     DivisionByZeroError,
     FloatingPointNotSupportedError,
@@ -71,20 +74,22 @@ const resultTyper = (initial: MetaInteger) => (result: BigNumber) => {
     if (initial._size === 8) { return Uint8(result);
     } else if (initial._size === 16) { return Uint16(result);
     } else if (initial._size === 32) { return Uint32(result);
-    } else if (initial._size === 64) { return Uint64(result);
+    } else if (initial._size === 64) { return Uint64(result.toString());
     } else { throw new TypeNotSupportedError(); }
 };
 
 // Convert Constructor Inputs to BigNumbers
 const emptyValueToZero = (x) => x ? x : 0;
-const noFloatString = (x: string): BigNumber | Error => noFloatNumber(parseInt(x, 10));
-const noFloatBigNumber = (x: BigNumber): BigNumber | Error => x.isInteger() ? x : new FloatingPointNotSupportedError();
-const noFloatNumber = (x: number): BigNumber | Error => x % 1 === 0 ? new BigNumber(x) : new FloatingPointNotSupportedError();
+const notFloat = (x: number): boolean => x % 1 === 0;
 
 const inputTypeToBigNumber = (value?: number | string | BigNumber): BigNumber | Error => {
-    if (value instanceof BigNumber) { return noFloatBigNumber(value);
-    } else if (typeof value === "string") { return noFloatString(value);
-    } else if (typeof value === "number") { return noFloatNumber(value); }
+    if (value instanceof BigNumber) {
+        return value.isInteger() ? value : new FloatingPointNotSupportedError();
+    } else if (typeof value === "string") {
+        return notFloat(parseInt(value, 10)) ? new BigNumber(value) : new FloatingPointNotSupportedError();
+    } else if (typeof value === "number") {
+        return notFloat(value) ? new BigNumber(value) : new FloatingPointNotSupportedError();
+    }
 };
 
 const sizeCheck = (size: number) => (value: BigNumber | Error): BigNumber | Error => {
@@ -148,7 +153,8 @@ const Uint32 = (value?: number | string | BigNumber): Uint32 => pipe(
         composeObjects<Uint32>({_uint32: true}),
     )(value);
 
-const Uint64 = (value?: number | string | BigNumber): Uint64 => pipe(
+// FIXME: Right now Uint64 can only be constructed using a string because of JS imprecision with numbers
+const Uint64 = (value?: string): Uint64 => pipe(
         emptyValueToZero,
         inputTypeToBigNumber,
         sizeCheck(64),
