@@ -125,6 +125,7 @@ const Int8 = (value?: number | string | BigNumber): Int8 => pipe(
         signInteger,
         addMathMethods<Int8>(),
         composeObjects<Int8>({_int8: true}),
+        Object.freeze,
     )(value);
 
 const Int16 = (value?: number | string | BigNumber): Int16 => pipe(
@@ -136,6 +137,7 @@ const Int16 = (value?: number | string | BigNumber): Int16 => pipe(
         signInteger,
         addMathMethods<Int16>(),
         composeObjects<Int16>({_int16: true}),
+        Object.freeze,
     )(value);
 
 const Int32 = (value?: number | string | BigNumber): Int32 => pipe(
@@ -147,6 +149,7 @@ const Int32 = (value?: number | string | BigNumber): Int32 => pipe(
         signInteger,
         addMathMethods<Int32>(),
         composeObjects<Int32>({_int32: true}),
+        Object.freeze,
     )(value);
 
 // FIXME: Right now Uint64 can only be constructed using a string because of JS imprecision with numbers
@@ -159,6 +162,7 @@ const Int64 = (value?: string): Int64 => pipe(
         signInteger,
         addMathMethods<Int64>(),
         composeObjects<Int64>({_int64: true}),
+        Object.freeze,
     )(value);
 
 // Type Checkers

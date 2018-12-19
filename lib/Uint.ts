@@ -128,6 +128,7 @@ const Uint8 = (value?: number | string | BigNumber): Uint8 => pipe(
         buildMetaInt(8),
         addMathMethods<Uint8>(),
         composeObjects<Uint8>({_uint8: true}),
+        Object.freeze,
     )(value);
 
 const Uint16 = (value?: number | string | BigNumber): Uint16 => pipe(
@@ -139,6 +140,7 @@ const Uint16 = (value?: number | string | BigNumber): Uint16 => pipe(
         buildMetaInt(16),
         addMathMethods<Uint16>(),
         composeObjects<Uint16>({_uint16: true}),
+        Object.freeze,
     )(value);
 
 const Uint32 = (value?: number | string | BigNumber): Uint32 => pipe(
@@ -150,6 +152,7 @@ const Uint32 = (value?: number | string | BigNumber): Uint32 => pipe(
         buildMetaInt(32),
         addMathMethods<Uint32>(),
         composeObjects<Uint32>({_uint32: true}),
+        Object.freeze,
     )(value);
 
 // FIXME: Right now Uint64 can only be constructed using a string because of JS imprecision with numbers
