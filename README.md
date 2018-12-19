@@ -16,7 +16,7 @@ Access the value and the size with their respective attributes (_value, and _siz
 
 Or preform safe math using the methods provided
 
-```
+```javascript
 import { Uint8, Int8 } from 'fixed-sized-numbers-ts'
 let safe72 = Uint8(72)
 let safeNegative54 = Int(-54)
@@ -33,7 +33,7 @@ console.log(safe72)
     div: [Function],
     _uint8: true
 }
-/*
+*/
 
 console.log(safeNegative54)
 /*
@@ -48,12 +48,12 @@ console.log(safeNegative54)
     _int8: true,
     _isPositive: false
 }
-/*
+*/
 ```
 
 >Note: Uint64 and Int64 need to be constructed using strings because of imprecission in Javascript after 53 bits, this is enforced in the typing
 
-```
+```javascript
 import { Uint64 } from 'fixed-sized-numbers-ts'
 let bigSafeNumber = Uint64("18446744073709551616")
 
@@ -69,14 +69,14 @@ console.log(bigSafeNumber)
     div: [Function],
     _uint8: true
 }
-/*
+*/
 ```
 
 For safe math the first value in the equation will be the one who's method is being called, the second number will be the number passed to it.
 
 >Note: Types must match; if you are calling the method from a Uint8 on a Uint8 it will work, but if you are calling it on a Uint16 it will not, this is enforced at the type level. Another way to think about this is that the math methods return a value with the same type that it belongs to i.e. all Uint8 methods return Uint8 objects.
 
-```
+```javascript
 import { Uint8, Uint16, Int8 } from 'fixed-sized-numbers-ts'
 let one = Uint8(1)
 let two = Uint8(2)
@@ -93,5 +93,5 @@ two.div(one) // will yield a Uint8 with _value of 2
 negOne.add(one) // No Int8 -> Uint8
 one.add(negOne) // No Uint8 -> Int8
 threeHunnid.add(one) // No Uint16 -> Uint8
-threeHunnid.add(negOne) no Uint16 -> Int8
+threeHunnid.add(negOne) // no Uint16 -> Int8
 ```
