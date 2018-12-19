@@ -188,42 +188,42 @@ describe("Uint should not support negative integers", () => {
     });
 });
 
-describe("Basic Uint construction with value: 257 (2^8 + 1)", () => {
+describe("Basic Uint construction with value: 256 (2^8)", () => {
     it("Uint8 should not construct properly for a value that exceeds a bit", () => {
         let uint8;
         try {
-           uint8 = Uint8(257);
+           uint8 = Uint8(256);
         } catch (e) {
             assert(true);
             return;
         }
         assert(false, "Uint8 was constructed for oversized value");
     });
-    it("Uint16 should construct properly when given a value 257", () => {
-        const uint16 = Uint16(257);
-        expect(uint16._value.toNumber()).to.be.equal(257);
+    it("Uint16 should construct properly when given a value 256", () => {
+        const uint16 = Uint16(256);
+        expect(uint16._value.toNumber()).to.be.equal(256);
         expect(uint16._size).to.be.equal(16);
         assert(uint16._uint16);
     });
-    it("Uint32 should construct properly when given a value 257", () => {
-        const uint32 = Uint32(257);
-        expect(uint32._value.toNumber()).to.be.equal(257);
+    it("Uint32 should construct properly when given a value 256", () => {
+        const uint32 = Uint32(256);
+        expect(uint32._value.toNumber()).to.be.equal(256);
         expect(uint32._size).to.be.equal(32);
         assert(uint32._uint32);
     });
-    it("Uint64 should construct properly when given a value 257", () => {
-        const uint64 = Uint64("257");
-        expect(uint64._value.toNumber()).to.be.equal(257);
+    it("Uint64 should construct properly when given a value 256", () => {
+        const uint64 = Uint64("256");
+        expect(uint64._value.toNumber()).to.be.equal(256);
         expect(uint64._size).to.be.equal(64);
         assert(uint64._uint64);
     });
 });
 
-describe("Basic Uint construction with value: 65,537 (2^16 + 1)", () => {
+describe("Basic Uint construction with value: 65,536 (2^16)", () => {
     it("Uint8 should not construct properly for a value that exceeds a bit", () => {
         let uint8;
         try {
-           uint8 = Uint8(65537);
+           uint8 = Uint8(65536);
         } catch (e) {
             assert(true);
             return;
@@ -233,7 +233,7 @@ describe("Basic Uint construction with value: 65,537 (2^16 + 1)", () => {
     it("Uint16 should not construct properly for a value that exceeds a bit", () => {
         let uint16;
         try {
-           uint16 = Uint16(65537);
+           uint16 = Uint16(65536);
         } catch (e) {
             assert(true);
             return;
@@ -241,24 +241,24 @@ describe("Basic Uint construction with value: 65,537 (2^16 + 1)", () => {
         assert(false, "Uint16 was constructed for oversized value");
     });
     it("Uint32 should construct properly when given a value 65,537", () => {
-        const uint32 = Uint32(65537);
-        expect(uint32._value.toNumber()).to.be.equal(65537);
+        const uint32 = Uint32(65536);
+        expect(uint32._value.toNumber()).to.be.equal(65536);
         expect(uint32._size).to.be.equal(32);
         assert(uint32._uint32);
     });
     it("Uint64 should construct properly when given a value 65,537", () => {
-        const uint64 = Uint64("65537");
-        expect(uint64._value.toNumber()).to.be.equal(65537);
+        const uint64 = Uint64("65536");
+        expect(uint64._value.toNumber()).to.be.equal(65536);
         expect(uint64._size).to.be.equal(64);
         assert(uint64._uint64);
     });
 });
 
-describe("Basic Uint construction with value: 1.844674407E19 (2^32 + 1)", () => {
+describe("Basic Uint construction with value: 1.844674407E19 (2^32)", () => {
     it("Uint8 should not construct properly for a value that exceeds a bit", () => {
         let uint8;
         try {
-           uint8 = Uint8(4294967297);
+           uint8 = Uint8(4294967296);
         } catch (e) {
             assert(true);
             return;
@@ -268,7 +268,7 @@ describe("Basic Uint construction with value: 1.844674407E19 (2^32 + 1)", () => 
     it("Uint16 should not construct properly for a value that exceeds a bit", () => {
         let uint16;
         try {
-           uint16 = Uint16(4294967297);
+           uint16 = Uint16(4294967296);
         } catch (e) {
             assert(true);
             return;
@@ -278,16 +278,16 @@ describe("Basic Uint construction with value: 1.844674407E19 (2^32 + 1)", () => 
     it("Uint32 should not construct properly for a value that exceeds a bit", () => {
         let uint32;
         try {
-           uint32 = Uint32(4294967297);
+           uint32 = Uint32(4294967296);
         } catch (e) {
             assert(true);
             return;
         }
         assert(false, "Uint32 was constructed for oversized value");
     });
-    it("Uint64 should construct properly when given a value 4,294,967,297", () => {
-        const uint64 = Uint64("4294967297");
-        expect(uint64._value.toNumber()).to.be.equal(4294967297);
+    it("Uint64 should construct properly when given a value 4,294,967,296", () => {
+        const uint64 = Uint64("4294967296");
+        expect(uint64._value.toNumber()).to.be.equal(4294967296);
         expect(uint64._size).to.be.equal(64);
         assert(uint64._uint64);
     });
@@ -334,7 +334,7 @@ describe("Basic Uint construction with value: 1.844674407E19 (2^32 + 1)", () => 
 });
 
 describe("Basic Uint construction with value: 3.689348815E19 (2^65)", () => {
-    it("Uint8 should not construct properly for a value that exceeds a bit", () => {
+    it("Uint8 should not construct properly for a value that exceeds the bit amount", () => {
         let uint8;
         try {
            uint8 = Uint8(3.689348815E19);
@@ -344,7 +344,7 @@ describe("Basic Uint construction with value: 3.689348815E19 (2^65)", () => {
         }
         assert(false, "Uint8 was constructed for oversized value");
     });
-    it("Uint16 should not construct properly for a value that exceeds a bit", () => {
+    it("Uint16 should not construct properly for a value that exceeds the bit amount", () => {
         let uint16;
         try {
            uint16 = Uint16(3.689348815E19);
@@ -354,7 +354,7 @@ describe("Basic Uint construction with value: 3.689348815E19 (2^65)", () => {
         }
         assert(false, "Uint16 was constructed for oversized value");
     });
-    it("Uint32 should not construct properly for a value that exceeds a bit", () => {
+    it("Uint32 should not construct properly for a value that exceeds the bit amount", () => {
         let uint32;
         try {
            uint32 = Uint32(3.689348815E19);
@@ -364,7 +364,7 @@ describe("Basic Uint construction with value: 3.689348815E19 (2^65)", () => {
         }
         assert(false, "Uint32 was constructed for oversized value");
     });
-    it("Uint64 should not construct properly for a value that exceeds a bit", () => {
+    it("Uint64 should not construct properly for a value that exceeds the bit amount", () => {
         let uint64;
         try {
            uint64 = Uint64("3.689348815E19");

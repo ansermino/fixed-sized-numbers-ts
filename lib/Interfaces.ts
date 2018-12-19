@@ -40,18 +40,38 @@ type Uint = Uint8 | Uint16 | Uint32 | Uint64;
 
 interface Int8 extends MetaInteger {
     _int8: boolean;
+    _isPositive: boolean;
+    add(n: Int8): Int8;
+    sub(n: Int8): Int8;
+    mul(n: Int8): Int8;
+    div(n: Int8): Int8;
 }
 interface Int16 extends MetaInteger {
     _int16: boolean;
+    _isPositive: boolean;
+    add(n: Int16): Int16;
+    sub(n: Int16): Int16;
+    mul(n: Int16): Int16;
+    div(n: Int16): Int16;
 }
 interface Int32 extends MetaInteger {
     _int32: boolean;
+    _isPositive: boolean;
+    add(n: Int32): Int32;
+    sub(n: Int32): Int32;
+    mul(n: Int32): Int32;
+    div(n: Int32): Int32;
 }
 interface Int64 extends MetaInteger {
     _int64: boolean;
+    _isPositive: boolean;
+    add(n: Int64): Int64;
+    sub(n: Int64): Int64;
+    mul(n: Int64): Int64;
+    div(n: Int64): Int64;
 }
 
-type Integer = Int8 | Int16 | Int32 | Int64;
+type Int = Int8 | Int16 | Int32 | Int64;
 
 
 export {
@@ -65,5 +85,5 @@ export {
     Int16,
     Int32,
     Int64,
-    Integer,
+    Int,
 };

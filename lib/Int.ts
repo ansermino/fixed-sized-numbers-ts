@@ -7,16 +7,15 @@ import {
     FloatingPointNotSupportedError,
     InconsistentSizeError,
     InvalidSizeError,
-    NegativeUnsignedError,
     TypeNotSupportedError,
 } from "./errors";
 import {
+    Int,
+    Int16,
+    Int32,
+    Int64,
+    Int8,
     MetaInteger,
-    Uint,
-    Uint16,
-    Uint32,
-    Uint64,
-    Uint8,
 } from "./Interfaces";
 import { getSize, pipe } from "./utils";
 
@@ -31,7 +30,7 @@ const bigNumberOrThrowError = (x: BigNumber | Error): BigNumber => {
 };
 
 // Math Method Factories ( Need to return any type so that it can receive type from Generic )
-const addFactory = (initial: MetaInteger) => (addend: Uint): any => {
+const addFactory = (initial: MetaInteger) => (addend: Int): any => {
     if (!initial.validateSize(addend)) {
        throw new InconsistentSizeError(initial._size, addend._size);
     } else {
@@ -39,7 +38,7 @@ const addFactory = (initial: MetaInteger) => (addend: Uint): any => {
     }
 };
 
-const subFactory = (minuend: MetaInteger) => (subtrahend: Uint): any => {
+const subFactory = (minuend: MetaInteger) => (subtrahend: Int): any => {
    if (!minuend.validateSize(subtrahend)) {
        throw new InconsistentSizeError(minuend._size, subtrahend._size);
     } else {
@@ -47,7 +46,7 @@ const subFactory = (minuend: MetaInteger) => (subtrahend: Uint): any => {
    }
 };
 
-const mulFactory = (multiplicand: MetaInteger) => (multiplier: Uint): any => {
+const mulFactory = (multiplicand: MetaInteger) => (multiplier: Int): any => {
    if (!multiplicand.validateSize(multiplier)) {
        throw new InconsistentSizeError(multiplicand._size, multiplier._size);
     } else {
@@ -55,7 +54,7 @@ const mulFactory = (multiplicand: MetaInteger) => (multiplier: Uint): any => {
    }
 };
 
-const divFactory = (dividend: MetaInteger) => (divisor: Uint): any => {
+const divFactory = (dividend: MetaInteger) => (divisor: Int): any => {
    if (!dividend.validateSize(divisor)) {
        throw new InconsistentSizeError(dividend._size, divisor._size);
     } else { return pipe (
@@ -67,13 +66,13 @@ const divFactory = (dividend: MetaInteger) => (divisor: Uint): any => {
 };
 
 // Typers
-const factoryTyper = <U>(uint: MetaInteger) => (factory: (internal: MetaInteger) => (external: Uint) => U ) => factory(uint);
+const factoryTyper = <U>(uint: MetaInteger) => (factory: (internal: MetaInteger) => (external: Int) => U ) => factory(uint);
 
 const resultTyper = (initial: MetaInteger) => (result: BigNumber) => {
-    if (initial._size === 8) { return Uint8(result);
-    } else if (initial._size === 16) { return Uint16(result);
-    } else if (initial._size === 32) { return Uint32(result);
-    } else if (initial._size === 64) { return Uint64(result.toString());
+    if (initial._size === 8) { return Int8(result);
+    } else if (initial._size === 16) { return Int16(result);
+    } else if (initial._size === 32) { return Int32(result);
+    } else if (initial._size === 64) { return Int64(result.toString());
     } else { throw new TypeNotSupportedError(); }
 };
 
@@ -94,20 +93,18 @@ const inputTypeToBigNumber = (value?: number | string | BigNumber): BigNumber | 
 const sizeCheck = (size: number) => (value: BigNumber | Error): BigNumber | Error => {
     if (value instanceof Error) { return value; }
     const numSize = value.toString(2).length;
-    return numSize <= size ? value : new InvalidSizeError(numSize);
+    const adjustedSize = value >= new BigNumber(0) ? numSize + 1 : numSize;
+    return adjustedSize <= size ? value : new InvalidSizeError(numSize);
 };
 
-const noNegativeUnsignedInteger = (value: BigNumber | Error): BigNumber | Error => {
-    if (value instanceof Error) { return value; }
-    return value.isPositive() ? value : new NegativeUnsignedError(value.toNumber());
-};
-
-// Uint Factory
+// Int Factory
 const buildMetaInt = (size: number) => (value: BigNumber): MetaInteger => ({
     _value: value,
     _size: size,
     validateSize: validateSize(size),
 });
+
+const signInteger = (metaInt: MetaInteger) => ( {...metaInt, _isPositive: metaInt._value >= new BigNumber(0)} );
 
 const addMathMethods = <T>() => (metaInt: MetaInteger) => ({
     ...metaInt,
@@ -119,64 +116,64 @@ const addMathMethods = <T>() => (metaInt: MetaInteger) => ({
 
 const composeObjects = <T>(x) => (y: MetaInteger): T => Object.assign(y, x) as T;
 
-const Uint8 = (value?: number | string | BigNumber): Uint8 => pipe(
+const Int8 = (value?: number | string | BigNumber): Int8 => pipe(
         emptyValueToZero,
         inputTypeToBigNumber,
         sizeCheck(8),
-        noNegativeUnsignedInteger,
         bigNumberOrThrowError,
         buildMetaInt(8),
-        addMathMethods<Uint8>(),
-        composeObjects<Uint8>({_uint8: true}),
+        signInteger,
+        addMathMethods<Int8>(),
+        composeObjects<Int8>({_int8: true}),
     )(value);
 
-const Uint16 = (value?: number | string | BigNumber): Uint16 => pipe(
+const Int16 = (value?: number | string | BigNumber): Int16 => pipe(
         emptyValueToZero,
         inputTypeToBigNumber,
         sizeCheck(16),
-        noNegativeUnsignedInteger,
         bigNumberOrThrowError,
         buildMetaInt(16),
-        addMathMethods<Uint16>(),
-        composeObjects<Uint16>({_uint16: true}),
+        signInteger,
+        addMathMethods<Int16>(),
+        composeObjects<Int16>({_int16: true}),
     )(value);
 
-const Uint32 = (value?: number | string | BigNumber): Uint32 => pipe(
+const Int32 = (value?: number | string | BigNumber): Int32 => pipe(
         emptyValueToZero,
         inputTypeToBigNumber,
         sizeCheck(32),
-        noNegativeUnsignedInteger,
         bigNumberOrThrowError,
         buildMetaInt(32),
-        addMathMethods<Uint32>(),
-        composeObjects<Uint32>({_uint32: true}),
+        signInteger,
+        addMathMethods<Int32>(),
+        composeObjects<Int32>({_int32: true}),
     )(value);
 
 // FIXME: Right now Uint64 can only be constructed using a string because of JS imprecision with numbers
-const Uint64 = (value?: string): Uint64 => pipe(
+const Int64 = (value?: string): Int64 => pipe(
         emptyValueToZero,
         inputTypeToBigNumber,
         sizeCheck(64),
-        noNegativeUnsignedInteger,
         bigNumberOrThrowError,
         buildMetaInt(64),
-        addMathMethods<Uint64>(),
-        composeObjects<Uint64>({_uint64: true}),
+        signInteger,
+        addMathMethods<Int64>(),
+        composeObjects<Int64>({_int64: true}),
     )(value);
 
 // Type Checkers
-const isUint8 = (x: Uint): x is Uint8 => (x as Uint8)._uint8;
-const isUint16 = (x: Uint): x is Uint16 => (x as Uint16)._uint16;
-const isUint32 = (x: Uint): x is Uint32 => (x as Uint32)._uint32;
-const isUint64 = (x: Uint): x is Uint64 => (x as Uint64)._uint64;
+const isInt8 = (x: Int): x is Int8 => (x as Int8)._int8;
+const isInt16 = (x: Int): x is Int16 => (x as Int16)._int16;
+const isInt32 = (x: Int): x is Int32 => (x as Int32)._int32;
+const isInt64 = (x: Int): x is Int64 => (x as Int64)._int64;
 
 export {
-    Uint8,
-    Uint16,
-    Uint32,
-    Uint64,
-    isUint8,
-    isUint16,
-    isUint32,
-    isUint64,
+    Int8,
+    Int16,
+    Int32,
+    Int64,
+    isInt8,
+    isInt16,
+    isInt32,
+    isInt64,
 };
