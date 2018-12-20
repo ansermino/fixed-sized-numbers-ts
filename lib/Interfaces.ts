@@ -36,7 +36,23 @@ interface Uint64 extends MetaInteger {
     div(n: Uint64): Uint64;
 }
 
-type Uint = Uint8 | Uint16 | Uint32 | Uint64;
+interface Uint128 extends MetaInteger {
+    _uint128: boolean;
+    add(n: Uint128): Uint128;
+    sub(n: Uint128): Uint128;
+    mul(n: Uint128): Uint128;
+    div(n: Uint128): Uint128;
+}
+
+interface Uint256 extends MetaInteger {
+    _uint256: boolean;
+    add(n: Uint256): Uint256;
+    sub(n: Uint256): Uint256;
+    mul(n: Uint256): Uint256;
+    div(n: Uint256): Uint256;
+}
+
+type Uint = Uint8 | Uint16 | Uint32 | Uint64 | Uint128 | Uint256;
 
 interface Int8 extends MetaInteger {
     _int8: boolean;
@@ -71,7 +87,25 @@ interface Int64 extends MetaInteger {
     div(n: Int64): Int64;
 }
 
-type Int = Int8 | Int16 | Int32 | Int64;
+interface Int128 extends MetaInteger {
+    _int128: boolean;
+    _isPositive: boolean;
+    add(n: Int128): Int128;
+    sub(n: Int128): Int128;
+    mul(n: Int128): Int128;
+    div(n: Int128): Int128;
+}
+
+interface Int256 extends MetaInteger {
+    _int256: boolean;
+    _isPositive: boolean;
+    add(n: Int256): Int256;
+    sub(n: Int256): Int256;
+    mul(n: Int256): Int256;
+    div(n: Int256): Int256;
+}
+
+type Int = Int8 | Int16 | Int32 | Int64 | Int128 | Int256 ;
 
 
 export {
@@ -80,10 +114,14 @@ export {
     Uint16,
     Uint32,
     Uint64,
+    Uint128,
+    Uint256,
     Uint,
     Int8,
     Int16,
     Int32,
     Int64,
+    Int128,
+    Int256,
     Int,
 };

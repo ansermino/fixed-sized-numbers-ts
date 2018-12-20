@@ -28,7 +28,15 @@ describe("Basic Int construction without value", () => {
         expect(int64._size).to.be.equal(64);
         assert(int64._int64);
     });
+    it("Int64 should construct properly when not given a value", () => {
+        const int64 = Int64();
+        expect(int64._value.toNumber()).to.be.equal(0);
+        expect(int64._size).to.be.equal(64);
+        assert(int64._int64);
+    });
 });
+
+
 
 describe("Basic Int construction with value: 0", () => {
     it("Int8 should construct properly when given a value of 0", () => {
@@ -692,8 +700,6 @@ describe("SafeMath tests for Int8", () => {
         assert(false, "Int8 multiplication should not overflow");
     });
 });
-
-// FIXME: Remove after fixed
 
 describe("SafeMath tests for Int16", () => {
     it("Int16 should return a Int16 for all basic methods: Add", () => {

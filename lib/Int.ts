@@ -11,7 +11,9 @@ import {
 } from "./errors";
 import {
     Int,
+    Int128,
     Int16,
+    Int256,
     Int32,
     Int64,
     Int8,
@@ -162,6 +164,30 @@ const Int64 = (value?: string): Int64 => pipe(
         signInteger,
         addMathMethods<Int64>(),
         composeObjects<Int64>({_int64: true}),
+        Object.freeze,
+    )(value);
+
+const Int128 = (value?: string): Int128 => pipe(
+        emptyValueToZero,
+        inputTypeToBigNumber,
+        sizeCheck(128),
+        bigNumberOrThrowError,
+        buildMetaInt(128),
+        signInteger,
+        addMathMethods<Int128>(),
+        composeObjects<Int128>({_int128: true}),
+        Object.freeze,
+    )(value);
+
+const Int256 = (value?: string): Int256 => pipe(
+        emptyValueToZero,
+        inputTypeToBigNumber,
+        sizeCheck(256),
+        bigNumberOrThrowError,
+        buildMetaInt(256),
+        signInteger,
+        addMathMethods<Int256>(),
+        composeObjects<Int256>({_int256: true}),
         Object.freeze,
     )(value);
 

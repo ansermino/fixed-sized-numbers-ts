@@ -13,7 +13,9 @@ import {
 import {
     MetaInteger,
     Uint,
+    Uint128,
     Uint16,
+    Uint256,
     Uint32,
     Uint64,
     Uint8,
@@ -155,7 +157,7 @@ const Uint32 = (value?: number | string | BigNumber): Uint32 => pipe(
         Object.freeze,
     )(value);
 
-// FIXME: Right now Uint64 can only be constructed using a string because of JS imprecision with numbers
+// FIXME: Right now Uint64 and higher can only be constructed using a string because of JS imprecision with numbers
 const Uint64 = (value?: string): Uint64 => pipe(
         emptyValueToZero,
         inputTypeToBigNumber,
@@ -167,19 +169,47 @@ const Uint64 = (value?: string): Uint64 => pipe(
         composeObjects<Uint64>({_uint64: true}),
     )(value);
 
+const Uint128 = (value?: string): Uint128 => pipe(
+    emptyValueToZero,
+    inputTypeToBigNumber,
+    sizeCheck(128),
+    noNegativeUnsignedInteger,
+    bigNumberOrThrowError,
+    buildMetaInt(128),
+    addMathMethods<Uint128>(),
+    composeObjects<Uint128>({_uint128: true}),
+)(value);
+
+const Uint256 = (value?: string): Uint256 => pipe(
+    emptyValueToZero,
+    inputTypeToBigNumber,
+    sizeCheck(256),
+    noNegativeUnsignedInteger,
+    bigNumberOrThrowError,
+    buildMetaInt(256),
+    addMathMethods<Uint256>(),
+    composeObjects<Uint256>({_uint256: true}),
+)(value);
+
 // Type Checkers
 const isUint8 = (x: Uint): x is Uint8 => (x as Uint8)._uint8;
 const isUint16 = (x: Uint): x is Uint16 => (x as Uint16)._uint16;
 const isUint32 = (x: Uint): x is Uint32 => (x as Uint32)._uint32;
 const isUint64 = (x: Uint): x is Uint64 => (x as Uint64)._uint64;
+const isUint128 = (x: Uint): x is Uint128 => (x as Uint128)._uint128;
+const isUint256 = (x: Uint): x is Uint256 => (x as Uint256)._uint256;
 
 export {
     Uint8,
     Uint16,
     Uint32,
     Uint64,
+    Uint128,
+    Uint256,
     isUint8,
     isUint16,
     isUint32,
     isUint64,
+    isUint128,
+    isUint256,
 };
