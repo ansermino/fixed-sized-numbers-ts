@@ -133,14 +133,6 @@ describe("Basic Uint construction with value: 1 (as String, Number, and BigNumbe
         expect(uint32._size).to.be.equal(32);
         assert(uint32._uint32);
     });
-    // TODO: Might implement these tests later when we have a better precision solution for Uint64
-    // it("Uint64 should construct properly when given a Number value of 1", () => {
-    //     const uint64 = Uint64(1);
-    //     assert(BigNumber.isBigNumber(uint64._value));
-    //     expect(uint64._value.toNumber()).to.be.equal(1);
-    //     expect(uint64._size).to.be.equal(64);
-    //     assert(uint64._uint64);
-    // });
     it("Uint64 should construct properly when given a String value of 1", () => {
         const uint64 = Uint64("1");
         assert(BigNumber.isBigNumber(uint64._value));
@@ -148,13 +140,6 @@ describe("Basic Uint construction with value: 1 (as String, Number, and BigNumbe
         expect(uint64._size).to.be.equal(64);
         assert(uint64._uint64);
     });
-    // it("Uint64 should construct properly when given a BigNumber value of 1", () => {
-    //     const uint64 = Uint64(new BigNumber(1));
-    //     assert(BigNumber.isBigNumber(uint64._value));
-    //     expect(uint64._value.toNumber()).to.be.equal(1);
-    //     expect(uint64._size).to.be.equal(64);
-    //     assert(uint64._uint64);
-    // });
     it("Uint128 should construct properly when given a String value of 1", () => {
         const uint128 = Uint128("1");
         assert(BigNumber.isBigNumber(uint128._value));
@@ -235,7 +220,7 @@ describe("Uint should not support negative integers", () => {
 });
 
 describe("Basic Uint construction with value: 256 (2^8)", () => {
-    it("Uint8 should not construct properly for a value that exceeds a bit", () => {
+    it("Uint8 should not construct properly for a value that exceeds its bit size", () => {
         let uint8;
         try {
            uint8 = Uint8(256);
@@ -278,7 +263,7 @@ describe("Basic Uint construction with value: 256 (2^8)", () => {
 });
 
 describe("Basic Uint construction with value: 65,536 (2^16)", () => {
-    it("Uint8 should not construct properly for a value that exceeds a bit", () => {
+    it("Uint8 should not construct properly for a value that exceeds its bit size", () => {
         let uint8;
         try {
            uint8 = Uint8(65536);
@@ -288,7 +273,7 @@ describe("Basic Uint construction with value: 65,536 (2^16)", () => {
         }
         assert(false, "Uint8 was constructed for oversized value");
     });
-    it("Uint16 should not construct properly for a value that exceeds a bit", () => {
+    it("Uint16 should not construct properly for a value that exceeds its bit size", () => {
         let uint16;
         try {
            uint16 = Uint16(65536);
@@ -325,7 +310,7 @@ describe("Basic Uint construction with value: 65,536 (2^16)", () => {
 });
 
 describe("Basic Uint construction with value: 1.844674407E19 (2^32)", () => {
-    it("Uint8 should not construct properly for a value that exceeds a bit", () => {
+    it("Uint8 should not construct properly for a value that exceeds its bit size", () => {
         let uint8;
         try {
            uint8 = Uint8(4294967296);
@@ -335,7 +320,7 @@ describe("Basic Uint construction with value: 1.844674407E19 (2^32)", () => {
         }
         assert(false, "Uint8 was constructed for oversized value");
     });
-    it("Uint16 should not construct properly for a value that exceeds a bit", () => {
+    it("Uint16 should not construct properly for a value that exceeds its bit size", () => {
         let uint16;
         try {
            uint16 = Uint16(4294967296);
@@ -345,7 +330,7 @@ describe("Basic Uint construction with value: 1.844674407E19 (2^32)", () => {
         }
         assert(false, "Uint16 was constructed for oversized value");
     });
-    it("Uint32 should not construct properly for a value that exceeds a bit", () => {
+    it("Uint32 should not construct properly for a value that exceeds its bit size", () => {
         let uint32;
         try {
            uint32 = Uint32(4294967296);
@@ -366,13 +351,13 @@ describe("Basic Uint construction with value: 1.844674407E19 (2^32)", () => {
 
 
 describe("Checking large Uint constuction (64 bits and higher)", () => {
-    it("Uint64 should construct properly when given a value 18446744073709551615 (2^64 - 1)", () => {
+    it("Uint64 should construct properly when given a value of 18446744073709551615 (2^64 - 1)", () => {
         const uint64 = Uint64("18446744073709551615");
         assert(uint64._value.eq(new BigNumber("18446744073709551615")));
         expect(uint64._size).to.be.equal(64);
         assert(uint64._uint64);
     });
-    it("Uint64 should not construct properly when given a value 18446744073709551616 (2^64)", () => {
+    it("Uint64 should not construct properly when given a value of 18446744073709551616 (2^64)", () => {
         let uint64;
         try {
            uint64 = Uint64("18446744073709551616");
@@ -382,25 +367,25 @@ describe("Checking large Uint constuction (64 bits and higher)", () => {
         }
         assert(false, "Uint64 was constructed for oversized value");
     });
-    it("Uint128 should construct properly when given a value 18446744073709551616 (2^64)", () => {
+    it("Uint128 should construct properly when given a value of 18446744073709551616 (2^64)", () => {
         const uint128 = Uint128("18446744073709551616");
         assert(uint128._value.eq(new BigNumber("18446744073709551616")));
         expect(uint128._size).to.be.equal(128);
         assert(uint128._uint128);
     });
-    it("Uint256 should construct properly when given a value 18446744073709551616 (2^64)", () => {
+    it("Uint256 should construct properly when given a value of 18446744073709551616 (2^64)", () => {
         const uint256 = Uint256("18446744073709551616");
         assert(uint256._value.eq(new BigNumber("18446744073709551616")));
         expect(uint256._size).to.be.equal(256);
         assert(uint256._uint256);
     });
-    it("Uint128 should construct properly when given a value 340,282,366,920,938,463,463,374,607,431,768,211,455 (2^128 - 1)", () => {
+    it("Uint128 should construct properly when given a value of 340,282,366,920,938,463,463,374,607,431,768,211,455 (2^128 - 1)", () => {
         const uint128 = Uint128("340282366920938463463374607431768211455");
         assert(uint128._value.eq(new BigNumber("340282366920938463463374607431768211455")));
         expect(uint128._size).to.be.equal(128);
         assert(uint128._uint128);
     });
-    it("Uint128 should not construct when given a value 340,282,366,920,938,463,463,374,607,431,768,211,456 (2^128)", () => {
+    it("Uint128 should not construct when given a value of 340,282,366,920,938,463,463,374,607,431,768,211,456 (2^128)", () => {
         let uint128;
         try {
            uint128 = Uint128("340282366920938463463374607431768211456");
@@ -410,19 +395,19 @@ describe("Checking large Uint constuction (64 bits and higher)", () => {
         }
         assert(false, "Uint128 was constructed for oversized value");
     });
-    it("Uint256 should construct properly when given a value 3.402823669E38 (2^128)", () => {
+    it("Uint256 should construct properly when given a valueof  3.402823669E38 (2^128)", () => {
         const uint256 = Uint256("3.402823669E38");
         assert(uint256._value.eq(new BigNumber("3.402823669E38")));
         expect(uint256._size).to.be.equal(256);
         assert(uint256._uint256);
     });
-    it("Uint256 should construct properly when given a value 115792089237316195423570985008687907853269984665640564039457584007913129639935 (2^256 - 1)", () => {
+    it("Uint256 should construct properly when given a value of 115792089237316195423570985008687907853269984665640564039457584007913129639935 (2^256 - 1)", () => {
         const uint256 = Uint256("115792089237316195423570985008687907853269984665640564039457584007913129639935");
         assert(uint256._value.eq(new BigNumber("115792089237316195423570985008687907853269984665640564039457584007913129639935")));
         expect(uint256._size).to.be.equal(256);
         assert(uint256._uint256);
     });
-    it("Uint256 should not construct when given a value 115792089237316195423570985008687907853269984665640564039457584007913129639936 (2^256)", () => {
+    it("Uint256 should not construct when given a value of 115792089237316195423570985008687907853269984665640564039457584007913129639936 (2^256)", () => {
         let uint256;
         try {
            uint256 = Uint256("115792089237316195423570985008687907853269984665640564039457584007913129639936");
