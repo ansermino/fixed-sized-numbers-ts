@@ -19,149 +19,36 @@ import {
     Int8,
     MetaInteger,
 } from "./Interfaces";
-import { getSize, pipe } from "./utils";
-import { bigNumberOrThrowError, checkDivByZero, validateSize } from "./utils/arithmeticFactories";
-import { emptyValueToZero, inputTypeToBigNumber, sizeCheck } from "./utils/inputParsers";
-
-// Math Method Factories ( Need to return any type so that it can receive type from Generic )
-const addFactory = (initial: MetaInteger) => (addend: Int): any => {
-    if (!initial.validateSize(addend)) {
-       throw new InconsistentSizeError(initial._size, addend._size);
-    } else {
-        return resultTyper(addend)(initial._value.plus(addend._value));
-    }
-};
-
-const subFactory = (minuend: MetaInteger) => (subtrahend: Int): any => {
-   if (!minuend.validateSize(subtrahend)) {
-       throw new InconsistentSizeError(minuend._size, subtrahend._size);
-    } else {
-        return resultTyper(minuend)(minuend._value.minus(subtrahend._value));
-   }
-};
-
-const mulFactory = (multiplicand: MetaInteger) => (multiplier: Int): any => {
-   if (!multiplicand.validateSize(multiplier)) {
-       throw new InconsistentSizeError(multiplicand._size, multiplier._size);
-    } else {
-        return resultTyper(multiplicand)(multiplicand._value.multipliedBy(multiplier._value));
-   }
-};
-
-const divFactory = (dividend: MetaInteger) => (divisor: Int): any => {
-   if (!dividend.validateSize(divisor)) {
-       throw new InconsistentSizeError(dividend._size, divisor._size);
-    } else { return pipe (
-            checkDivByZero(dividend._value)(divisor._value),
-            bigNumberOrThrowError,
-            resultTyper(dividend),
-        )(dividend._value.dividedBy(divisor._value));
-   }
-};
-
-// Typers
-const factoryTyper = <U>(uint: MetaInteger) => (factory: (internal: MetaInteger) => (external: Int) => U ) => factory(uint);
-
-const resultTyper = (initial: MetaInteger) => (result: BigNumber): Int => {
-    if (initial._size === 8) { return Int8(result);
-    } else if (initial._size === 16) { return Int16(result);
-    } else if (initial._size === 32) { return Int32(result);
-    } else if (initial._size === 64) { return Int64(result.toString());
-    } else if (initial._size === 128) { return Int128(result.toString());
-    } else if (initial._size === 256) { return Int256(result.toString());
-    } else { throw new TypeNotSupportedError(); }
-};
-
-// Int Factory
-const buildMetaInt = (size: number) => (value: BigNumber): MetaInteger => ({
-    _value: value,
-    _size: size,
-    validateSize: validateSize(size),
-});
+import { bigNumberOrThrowError, pipe } from "./utils/utils";
+import { buildMetaInt, composeObjects } from "./utils/metaIntFactory";
+import { resultTyperInt, addMathMethods } from "./utils/arithmeticFactories";
+import { emptyValueToZero, inputTypeToBigNumber, sizeCheckInt } from "./utils/inputParsers";
 
 const signInteger = (metaInt: MetaInteger) => ( {...metaInt, _isPositive: metaInt._value >= new BigNumber(0)} );
 
-const addMathMethods = <T>() => (metaInt: MetaInteger) => ({
-    ...metaInt,
-    add: factoryTyper<T>(metaInt)(addFactory),
-    sub: factoryTyper<T>(metaInt)(subFactory),
-    mul: factoryTyper<T>(metaInt)(mulFactory),
-    div: factoryTyper<T>(metaInt)(divFactory),
-});
+const IntFactory = <T>(size: number) => (identifier: object) => pipe(
+    emptyValueToZero,
+    inputTypeToBigNumber,
+    sizeCheckInt(size),
+    bigNumberOrThrowError,
+    buildMetaInt(size),
+    signInteger,
+    addMathMethods<T>(resultTyperInt),
+    composeObjects<T>(identifier),
+    Object.freeze,
+);
 
-const composeObjects = <T>(x) => (y: MetaInteger): T => Object.assign(y, x) as T;
+const Int8 = (value?: number | string | BigNumber): Int8 => IntFactory<Int8>(8)({_int8: true})(value);
 
-const Int8 = (value?: number | string | BigNumber): Int8 => pipe(
-        emptyValueToZero,
-        inputTypeToBigNumber,
-        sizeCheck(8),
-        bigNumberOrThrowError,
-        buildMetaInt(8),
-        signInteger,
-        addMathMethods<Int8>(),
-        composeObjects<Int8>({_int8: true}),
-        Object.freeze,
-    )(value);
+const Int16 = (value?: number | string | BigNumber): Int16 => IntFactory<Int16>(16)({_int16: true})(value);
 
-const Int16 = (value?: number | string | BigNumber): Int16 => pipe(
-        emptyValueToZero,
-        inputTypeToBigNumber,
-        sizeCheck(16),
-        bigNumberOrThrowError,
-        buildMetaInt(16),
-        signInteger,
-        addMathMethods<Int16>(),
-        composeObjects<Int16>({_int16: true}),
-        Object.freeze,
-    )(value);
+const Int32 = (value?: number | string | BigNumber): Int32 => IntFactory<Int32>(32)({_int32: true})(value);
 
-const Int32 = (value?: number | string | BigNumber): Int32 => pipe(
-        emptyValueToZero,
-        inputTypeToBigNumber,
-        sizeCheck(32),
-        bigNumberOrThrowError,
-        buildMetaInt(32),
-        signInteger,
-        addMathMethods<Int32>(),
-        composeObjects<Int32>({_int32: true}),
-        Object.freeze,
-    )(value);
+const Int64 = (value?: string): Int64 => IntFactory<Int64>(64)({_int64: true})(value);
 
-const Int64 = (value?: string): Int64 => pipe(
-        emptyValueToZero,
-        inputTypeToBigNumber,
-        sizeCheck(64),
-        bigNumberOrThrowError,
-        buildMetaInt(64),
-        signInteger,
-        addMathMethods<Int64>(),
-        composeObjects<Int64>({_int64: true}),
-        Object.freeze,
-    )(value);
+const Int128 = (value?: string): Int128 => IntFactory<Int128>(128)({_int128: true})(value);
 
-const Int128 = (value?: string): Int128 => pipe(
-        emptyValueToZero,
-        inputTypeToBigNumber,
-        sizeCheck(128),
-        bigNumberOrThrowError,
-        buildMetaInt(128),
-        signInteger,
-        addMathMethods<Int128>(),
-        composeObjects<Int128>({_int128: true}),
-        Object.freeze,
-    )(value);
-
-const Int256 = (value?: string): Int256 => pipe(
-        emptyValueToZero,
-        inputTypeToBigNumber,
-        sizeCheck(256),
-        bigNumberOrThrowError,
-        buildMetaInt(256),
-        signInteger,
-        addMathMethods<Int256>(),
-        composeObjects<Int256>({_int256: true}),
-        Object.freeze,
-    )(value);
+const Int256 = (value?: string): Int256 => IntFactory<Int256>(256)({_int256: true})(value);
 
 // Type Checkers
 const isInt8 = (x: Int): x is Int8 => (x as Int8)._int8;

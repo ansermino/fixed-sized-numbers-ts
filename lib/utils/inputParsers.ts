@@ -18,14 +18,22 @@ const inputTypeToBigNumber = (value?: number | string | BigNumber): BigNumber | 
     }
 };
 
-const sizeCheck = (size: number) => (value: BigNumber | Error): BigNumber | Error => {
+const sizeCheckUint = (size: number) => (value: BigNumber | Error): BigNumber | Error => {
     if (value instanceof Error) { return value; }
     const numSize = value.toString(2).length;
     return numSize <= size ? value : new InvalidSizeError(numSize);
 };
 
+const sizeCheckInt = (size: number) => (value: BigNumber | Error): BigNumber | Error => {
+    if (value instanceof Error) { return value; }
+    const numSize = value.toString(2).length;
+    const adjustedSize = value >= new BigNumber(0) ? numSize + 1 : numSize;
+    return adjustedSize <= size ? value : new InvalidSizeError(numSize);
+};
+
 export {
     emptyValueToZero,
     inputTypeToBigNumber,
-    sizeCheck,
+    sizeCheckUint,
+    sizeCheckInt,
 };

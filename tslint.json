@@ -23,7 +23,8 @@
           "timeEnd",
           "trace"
         ]
-      }
+      },
+      "ordered-imports": false
     },
     "jsRules": {
       "max-line-length": {
