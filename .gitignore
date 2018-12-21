@@ -1,5 +1,5 @@
-lib/*.js
-tests/*.js
+*/*.js
+*/*/*.js 
 
 .idea/
 node_modules/
