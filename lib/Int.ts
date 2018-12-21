@@ -2,23 +2,18 @@ import BigNumber from "bignumber.js";
 BigNumber.config({
     DECIMAL_PLACES: 0,
 });
-import {
-    DivisionByZeroError,
-    FloatingPointNotSupportedError,
-    InconsistentSizeError,
-    InvalidSizeError,
-    TypeNotSupportedError,
-} from "./errors";
+
 import {
     Int,
-    Int128,
+    Int8,
     Int16,
-    Int256,
     Int32,
     Int64,
-    Int8,
+    Int128,
+    Int256,
     MetaInteger,
 } from "./Interfaces";
+
 import { bigNumberOrThrowError, pipe } from "./utils/utils";
 import { buildMetaInt, composeObjects } from "./utils/metaIntFactory";
 import { resultTyperInt, addMathMethods } from "./utils/arithmeticFactories";
