@@ -1,5 +1,5 @@
 import BigNumber from "bignumber.js";
-import { TypeNotSupportedError } from "./errors";
+import { TypeNotSupportedError } from "../errors";
 
 const getSize = (num) => {
     if (typeof num === "number") { return getNumberSize(num);

@@ -21,16 +21,8 @@ import {
     Uint8,
 } from "./Interfaces";
 import { getSize, pipe } from "./utils";
-
-
-//  Validators
-const validateSize = (initialSize: number) => (external: MetaInteger): boolean => initialSize === external._size;
-const checkDivByZero = (divisor: BigNumber) => (dividend: BigNumber) => (quotient: BigNumber) => !divisor.isZero() && !dividend.isZero() ? quotient : new DivisionByZeroError();
-const bigNumberOrThrowError = (x: BigNumber | Error): BigNumber => {
-    if (x instanceof Error) {
-        throw x;
-    } else { return x; }
-};
+import { bigNumberOrThrowError, checkDivByZero, validateSize } from "./utils/arithmeticFactories";
+import { emptyValueToZero, inputTypeToBigNumber, sizeCheck } from "./utils/inputParsers";
 
 // Math Method Factories ( Need to return any type so that it can receive type from Generic )
 const addFactory = (initial: MetaInteger) => (addend: Uint): any => {
@@ -69,34 +61,16 @@ const divFactory = (dividend: MetaInteger) => (divisor: Uint): any => {
 };
 
 // Typers
-const factoryTyper = <U>(uint: MetaInteger) => (factory: (internal: MetaInteger) => (external: Uint) => U ) => factory(uint);
+const factoryTyper = <U>(metaInt: MetaInteger) => (factory: (internal: MetaInteger) => (external: Uint) => U ) => factory(metaInt);
 
-const resultTyper = (initial: MetaInteger) => (result: BigNumber) => {
+const resultTyper = (initial: MetaInteger) => (result: BigNumber): Uint => {
     if (initial._size === 8) { return Uint8(result);
     } else if (initial._size === 16) { return Uint16(result);
     } else if (initial._size === 32) { return Uint32(result);
     } else if (initial._size === 64) { return Uint64(result.toString());
+    } else if (initial._size === 128) { return Uint128(result.toString());
+    } else if (initial._size === 256) { return Uint256(result.toString());
     } else { throw new TypeNotSupportedError(); }
-};
-
-// Convert Constructor Inputs to BigNumbers
-const emptyValueToZero = (x) => x ? x : 0;
-const notFloat = (x: number): boolean => x % 1 === 0;
-
-const inputTypeToBigNumber = (value?: number | string | BigNumber): BigNumber | Error => {
-    if (value instanceof BigNumber) {
-        return value.isInteger() ? value : new FloatingPointNotSupportedError();
-    } else if (typeof value === "string") {
-        return notFloat(parseInt(value, 10)) ? new BigNumber(value) : new FloatingPointNotSupportedError();
-    } else if (typeof value === "number") {
-        return notFloat(value) ? new BigNumber(value) : new FloatingPointNotSupportedError();
-    }
-};
-
-const sizeCheck = (size: number) => (value: BigNumber | Error): BigNumber | Error => {
-    if (value instanceof Error) { return value; }
-    const numSize = value.toString(2).length;
-    return numSize <= size ? value : new InvalidSizeError(numSize);
 };
 
 const noNegativeUnsignedInteger = (value: BigNumber | Error): BigNumber | Error => {
@@ -157,7 +131,6 @@ const Uint32 = (value?: number | string | BigNumber): Uint32 => pipe(
         Object.freeze,
     )(value);
 
-// FIXME: Right now Uint64 and higher can only be constructed using a string because of JS imprecision with numbers
 const Uint64 = (value?: string): Uint64 => pipe(
         emptyValueToZero,
         inputTypeToBigNumber,
